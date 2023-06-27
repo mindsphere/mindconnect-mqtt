@@ -51,6 +51,8 @@ After model is created, the instance will be created automatically on start-up o
 
 It uses the file `instance.conf` to check if the instance was created. The file should not exist if instance is not created.
 
+Reference: https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqtt-agent.html
+
 ### Starting Agent
 
 Run the agent python file `MindConnectClient.py` for the connection to be established.
@@ -58,3 +60,5 @@ Run the agent python file `MindConnectClient.py` for the connection to be establ
 Command: `python MindConnectClient.py`
 
 We should get connected status `0` after the client starts running. 
+
+Reference: https://documentation.mindsphere.io/MindSphere/howto/howto-send-data-from-mqtt-agent.html
