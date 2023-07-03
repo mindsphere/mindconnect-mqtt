@@ -1,8 +1,11 @@
 #!/usr/bin/python
 # **************************************#
 #  MQTT in Python for RPI               #
-# **************************************#              #
-# Date: June 27, 2023                    #
+# **************************************#
+# Author: Amol Kulkarni                 #
+# Date: May 30, 2022                    #
+# Please feel free to modify the code   #
+# according to your needs.              #
 # **************************************#
 
 # **************************************#
@@ -18,7 +21,6 @@ from random import uniform, randint
 import json
 import logging
 import threading
-#from picamera import PiCamera
 from time import sleep
 import datetime
 from lib import config_parser
@@ -89,8 +91,6 @@ class IotService:
         self.gateway_url = config['GW_URL']
         self.southgate_url = config['SGW_URL']
 
-        #self.camera = PiCamera()
-
         # Connection Variable for MQTTClient declaration.
         self.connection = paho.Client(self.clientId, clean_session=False)
         self.connected_flag = False
@@ -98,13 +98,14 @@ class IotService:
         self.create_model_instance()
 
         schedule.every(60).seconds.do(self.insert_timeseries_callback)
-        #self.check_interrupt_timer.init(mode=Timer.PERIODIC, period=3000, callback=self.check_interrupt_timer_callback)
+        schedule.every(120).seconds.do(self.infrared_sensor_interrupt)
 
         schedule.every(30).minutes.do(self.refresh_http_token)
 
-        schedule.every(60).seconds.do(self.upload_to_datalake)
+        schedule.every(120).seconds.do(self.upload_to_datalake)
+        schedule.every(120).seconds.do(self.execute_file_upload)
 
-        print("Time synchronization after initializationï¼š" + self.getCurrentTimestamp())
+        print("Time synchronization after initialization" + self.getCurrentTimestamp())
 
         self.start_device_connection()
 
@@ -482,7 +483,7 @@ class IotService:
         print("sent token generation request : " + self.token_req_publish_topic)
         print("Sent token generation payload : " + json.dumps(token_payload))
 
-    def infrared_sensor_interrupt(self, pin):
+    def infrared_sensor_interrupt(self):
         print('Infrared Sensor Event Triggered')
         self.display_lines("Motion Sensor", "INTERRUPT !!!  : ", "Shut Down JetPump.")
         sleep(1)
@@ -490,7 +491,7 @@ class IotService:
 
         curr_date_time = self.getCurrentTimestamp()
         severity = randint(2, 4) * 10
-        id = str(uuid.uuid4())
+        id = uuid.uuid4()
         event_payload = {
             "events": [{
                 "id": str(id),
@@ -517,14 +518,14 @@ class IotService:
         print("Sent Event data payload : " + json.dumps(event_payload))
 
 
-    def execute_file_upload(self, pin):
+    def execute_file_upload(self):
         print('File Upload Event Triggered')
         self.display_lines("File Upload", "Triggered !!!")
         curr_date_time = self.getCurrentTimestamp()
         severity = randint(2, 4) * 10
-        unique_id = str(uuid.uuid4())
+        unique_id = uuid.uuid4()
 
-        file_content = curr_date_time + " INFO: Connection Successfully Established to broker nativemqtt.eu1-int.mindsphere.io\n" + \
+        file_content = curr_date_time + " INFO: Connection Successfully Established to broker mindonnect.eu1-int.mindsphere.io\n" + \
                        curr_date_time + " INFO: Subscribed to topic : tc/punint05/punint05_mqttagent/i/cmd_v3/c\n" + \
                        curr_date_time + " INFO: Checking and creating asset model instance.\n" + \
                        curr_date_time + " INFO: The Asset Instance Already exist so skipping Instance Creation.\n" + \
@@ -535,21 +536,21 @@ class IotService:
                        curr_date_time + " INFO: Sent File Upload."
         print("Sending File Upload Data: " + file_content)
 
-        encoded_base64_data = base64.b64encode(file_content)
+        encoded_base64_data = base64.b64encode(file_content.encode('ascii'))
         encoded_base64_data = encoded_base64_data[:-2]
+        base64_message = encoded_base64_data.decode('ascii')
 
         file_upload_payload = {
             "file": {
                 "name": "Daily Execution Log : " + str(unique_id.hex),
                 "creationDate": curr_date_time,
-                "content": encoded_base64_data
+                "content": base64_message
             }
         }
 
         try:
             self.connection.publish(self.file_publish_topic, json.dumps(file_upload_payload), qos=0)
         except Exception as Argument:
-            sys.print_exception(Argument)
             print("Error publishing data : " + str(Argument))
             print("Connection Lost , trying to connect again.")
             self.establish_connection()
@@ -557,8 +558,6 @@ class IotService:
         print("Sent File Upload payload : " + json.dumps(file_upload_payload))
 
     def upload_to_datalake(self):
-
-        return
 
         auth_headers = {
             'Content-Type': 'application/json',
@@ -597,24 +596,12 @@ class IotService:
                 print("Found image upload url")
                 sensor_image_signedUrl = obj["signedUrl"]
 
-        sensor_map_file = open("./analytics/sensor-map.obj", 'r')
+        sensor_map_file = open("upload_files/sensor-map.obj", 'r')
         file_content = sensor_map_file.read()
         upload_response = requests.put(sensor_file_signedUrl, data=file_content)
 
         print("sensor map file upload status : " + str(upload_response.status_code))
-
-        #amol camera
-        image_location = './analytics/quality-snapshot.jpg'
-        try:
-            self.camera.start_preview()
-            sleep(3)
-            self.camera.capture(image_location)
-            self.camera.stop_preview()
-        except Exception as Argument:
-            sys.print_exception(Argument)
-            print("Error capturing Camera Image : " + str(Argument))
-            print("falling back to default image ")
-            image_location = "./analytics/arm-3d.jpeg"
+        image_location = 'upload_files/quality-snapshot-clear.jpeg'
 
         sensor_image_file = open(image_location, 'rb')
         image_file_content = sensor_image_file.read()
@@ -686,5 +673,5 @@ class IotService:
 env = "AWS_PROD"
 
 print("Loading Config file for Environment " + env)
-loadedConfig = config_parser.parse(env, 'configs/config.json')
+loadedConfig = config_parser.parse(env, 'configs/mqtt-config.json')
 iotService = IotService(loadedConfig)

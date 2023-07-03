@@ -1,0 +1,22 @@
+{
+    "id": "<uuid>",
+    "data": {
+        "modelExternalId": "<model_name>",
+        "parameterization": {
+            "values": [
+                {
+                    "name": "assetName",
+                    "value": "<model_name>"
+                },
+                {
+                    "name": "childAssetName1",
+                    "value": "Accumulator"
+                },
+                {
+                    "name": "childAssetName2",
+                    "value": "Reservoir"
+                }
+            ]
+        }
+    }
+}

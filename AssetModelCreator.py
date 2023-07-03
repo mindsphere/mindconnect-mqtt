@@ -13,8 +13,10 @@ import logging
 import threading
 import datetime
 import uuid
+import config_parser
 import PySimpleGUI as sg
-from lib import config_parser
+import jwt
+import time
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,7 +31,14 @@ class AssetModelerService:
         self.certPath = config['DEVICE_CERT_PATH']
         self.keyPath = config['DEVICE_KET_PATH']
         self.tenant = config['TENANT_ID']
+        self.model_name = config['MODEL_NAME']
+        self.platform = self.config["PLATFORM"]
+        self.tenantCertPath = ''
         self.user_name = ''
+        self.jwt_token = ''
+        self.assel_model_json_file = "example_json/asset_model.json"
+        self.instance_json_file = "example_json/instance.json"
+        self.timeseries_json_file = "example_json/timeseries.json"
 
         self.configure_topics()
 
@@ -107,18 +116,73 @@ class AssetModelerService:
 
 
     def configure_topics(self):
-        platform = self.config["PLATFORM"]
-        if platform == 'AWS':
+        if self.platform == 'AWS':
             self.instance_subscribe_topic = "tc/"+self.tenant+"/"+self.clientId+"/i/amo_v3/ip"
             self.model_subscribe_topic = "tc/"+self.tenant+"/"+self.clientId+"/i/amo_v3/ms"
             self.model_publish_topic = "tc/"+self.tenant+"/"+self.clientId+"/o/amo_v3/m"
             self.instance_publish_topic = "tc/"+self.tenant+"/"+self.clientId+"/o/amo_v3/i"
-        elif platform == 'AZURE':
+        elif self.platform == 'AZURE':
             self.instance_subscribe_topic = "devices/"+self.clientId+"/messages/devicebound/#"
             self.model_subscribe_topic = ""
             self.model_publish_topic = "devices/"+self.clientId+"/messages/events/amo_v3=m"
             self.instance_publish_topic = "devices/"+self.clientId+"/messages/events/amo_v3=i"
             self.user_name = self.mqtt_broker_host + "/" + self.clientId
+        elif self.platform == 'PVTCLOUD':
+            self.instance_subscribe_topic = "tc/"+self.tenant+"/"+self.clientId+"/i/amo_v3/ip"
+            self.model_subscribe_topic = "tc/"+self.tenant+"/"+self.clientId+"/i/amo_v3/ms"
+            self.model_publish_topic = "tc/"+self.tenant+"/"+self.clientId+"/o/amo_v3/m"
+            self.instance_publish_topic = "tc/"+self.tenant+"/"+self.clientId+"/o/amo_v3/i"
+            self.user_name = "_CertificateBearer"
+            self.tenantCertPath = self.config['TENANT_CERT_PATH']
+
+    def generate_jwt_token(self):
+        print("Generating JWT Token for RabbitMQ MQTT Broker...")
+
+        device_private_key = open(self.keyPath, 'r').read()
+
+        device_cert_file = open(self.certPath, 'r')
+        device_cert_lines = device_cert_file.readlines()
+        device_cert_lines = device_cert_lines[:-1]
+        device_cert_lines = device_cert_lines[1:]
+        device_cert_single_line = "".join(device_cert_lines).replace('\n', '').replace('\r', '')
+        #print("device_cert_single_line", device_cert_single_line)
+
+        tenant_cert_file = open(self.tenantCertPath, 'r')
+        tenant_cert_lines = tenant_cert_file.readlines()
+        tenant_cert_lines = tenant_cert_lines[:-1]
+        tenant_cert_lines = tenant_cert_lines[1:]
+        tenant_cert_single_line = "".join(tenant_cert_lines).replace('\n', '').replace('\r', '')
+        #print("tenant_cert_single_line", tenant_cert_single_line)
+
+        #print("Private Key from File" + device_private_key)
+        private_key_int = device_private_key.encode('utf-8')
+
+        iat = int(round(time.time()))
+        exp = int(round(iat + 1500))
+        jti = str(uuid.uuid4())
+
+        claim = {
+            "jti": jti,
+            "iss": self.clientId,
+            "sub": self.clientId,
+            "aud": ["MQTTBroker"],
+            "iat": iat,
+            "nbf": iat,
+            "exp": exp,
+            "schemas": ["urn:siemens:mindsphere:v1"],
+            "ten": self.tenant
+        }
+
+        headers = {
+            "alg": "RS256",
+            "x5c": [device_cert_single_line, tenant_cert_single_line],
+            "typ": "JWT"
+        }
+
+        encoded = jwt.encode(claim, private_key_int, algorithm="RS256", headers=headers)
+        # print("token: ", encoded)
+        logging.debug("jwt token for secret : " + str(encoded))
+        self.jwt_token = str(encoded)
 
     # def on_log(client, userdata, level, msg):
     #    print(msg.topic+" "+str(msg.payload))
@@ -126,12 +190,19 @@ class AssetModelerService:
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_message = self.on_message
         # mqttc.on_log = on_log
-        if self.user_name:
-            self.mqttc.username_pw_set(self.user_name)
+        if self.platform == 'PVTCLOUD':
+            self.generate_jwt_token()
+            self.mqttc.username_pw_set(self.user_name, self.jwt_token)
+            print("Connecting to Rabbitmq via JWT token.")
+            self.mqttc.tls_set(self.caPath, cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2,
+                               ciphers=None)
+        else:
+            if self.user_name:
+                self.mqttc.username_pw_set(self.user_name)
 
-        self.mqttc.tls_set(self.caPath, certfile=self.certPath, keyfile=self.keyPath,
-                           cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2,
-                           ciphers=None)
+            self.mqttc.tls_set(self.caPath, certfile=self.certPath, keyfile=self.keyPath,
+                               cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLSv1_2,
+                               ciphers=None)
 
         self.mqttc.connect(self.mqtt_broker_host, self.mqtt_broker_port, keepalive=60)
 
@@ -146,121 +217,30 @@ class AssetModelerService:
             if self.connected_flag:
                 if event == "Create Model":
                     print("Creating Model")
-                    model = {
-                        "id": str(uuid.uuid4()),
-                        "data": {
-                            "externalId": "JetPumpModel",
-                            "typeModel": {
-                                "aspectTypes": [
-                                    {
-                                        "id": self.tenant +".dht11Aspect",
-                                        "name": "dht11Aspect",
-                                        "description": "Variables of a Humidity Sensor",
-                                        "category": "dynamic",
-                                        "scope": "private",
-                                        "variables": [
-                                            {
-                                                "name": "temperature",
-                                                "dataType": "DOUBLE",
-                                                "unit": "C"
-                                            },
-                                            {
-                                                "name": "humidity",
-                                                "dataType": "DOUBLE",
-                                                "unit": "rh"
-                                            }
-                                        ]
-                                    }
-                                ],
-                                "assetTypes": [
-                                    {
-                                        "id": self.tenant + ".jetPumpType",
-                                        "name": "JetPumpType",
-                                        "description": "Asset type for individual jet pump in a line",
-                                        "variables": [],
-                                        "parentTypeId": "core.basicasset",
-                                        "aspects": [
-                                            {
-                                                "name": "dht11Aspect",
-                                                "aspectTypeId": self.tenant +".dht11Aspect"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            "instanceModel": {
-                                "assets": [
-                                    {
-                                        "referenceId": "ParentJetPump",
-                                        "typeId": self.tenant + ".jetPumpType",
-                                        "name": "${assetName}"
-                                    },
-                                    {
-                                        "referenceId": "ChildJetPump1",
-                                        "typeId": self.tenant + ".jetPumpType",
-                                        "name": "${childAssetName1}",
-                                        "parentReferenceId": "ParentJetPump"
-                                    },
-                                    {
-                                        "referenceId": "ChildJetPump2",
-                                        "typeId": self.tenant + ".jetPumpType",
-                                        "name": "${childAssetName2}",
-                                        "parentReferenceId": "ChildJetPump1"
-                                    }
-                                ]
-                            },
-                            "mappingModel": {
-                                "mappings": [
-                                    {
-                                        "dataPointId": "temperature",
-                                        "assetReferenceId": "ParentJetPump",
-                                        "aspectName": "dht11Aspect",
-                                        "variableName": "temperature"
-                                    },
-                                    {
-                                        "dataPointId": "humidity",
-                                        "assetReferenceId": "ParentJetPump",
-                                        "aspectName": "dht11Aspect",
-                                        "variableName": "humidity"
-                                    }
-                                ]
-                            }
-                        }
-                    }
+                    asset_model_file = open(self.assel_model_json_file, 'r')
+                    asset_model_contents = asset_model_file.read()
+                    asset_model_contents = asset_model_contents.replace("<tenantId>", self.tenant)
+                    asset_model_contents = asset_model_contents.replace("<uuid>", str(uuid.uuid4()))
+
+                    model = json.loads(asset_model_contents)
 
                     serialized = json.dumps(model, sort_keys=True, indent=3)
                     print(serialized)
 
-                    self.mqttc.publish(self.model_publish_topic, json.dumps(model), qos=0)
+                    #self.mqttc.publish(self.model_publish_topic, json.dumps(model), qos=0)
                     print('sent to model creation topic : ' + self.model_publish_topic)
 
                 elif event == "Create Instance":
                     print("Creating Instance")
-                    instance = {
-                        "id": str(uuid.uuid4()),
-                        "data": {
-                            "modelExternalId": "JetPumpModel",
-                            "parameterization": {
-                                "values": [
-                                    {
-                                        "name": "assetName",
-                                        "value": "ESP-JetPumpParent"
-                                    },
-                                    {
-                                        "name": "childAssetName1",
-                                        "value": "ESP-JetPumpChild1"
-                                    },
-                                    {
-                                        "name": "childAssetName2",
-                                        "value": "ESP-JetPumpChild2"
-                                    }
-                                ]
-                            }
-                        }
-                    }
+                    instance_file = open(self.instance_json_file, 'r')
+                    instance_contents = instance_file.read()
+                    instance_contents = instance_contents.replace("<model_name>", self.model_name)
+                    instance_contents = instance_contents.replace("<uuid>", str(uuid.uuid4()))
+                    instance = json.loads(instance_contents)
+
                     serialized = json.dumps(instance, sort_keys=True, indent=3)
                     print(serialized)
-                    self.mqttc.publish(self.instance_publish_topic, json.dumps(instance), qos=0)
+                    #self.mqttc.publish(self.instance_publish_topic, json.dumps(instance), qos=0)
                     print('sent to model creation topic : ' + self.instance_publish_topic)
 
                 elif event == sg.WIN_CLOSED:
@@ -271,9 +251,8 @@ class AssetModelerService:
 
         self.window.close()
 
-
 env = "AWS_PROD"
 
 print("Loading Config file for Environment " + env)
-loadedConfig = config_parser.parse(env, 'configs/config.json')
+loadedConfig = config_parser.parse(env, 'configs/mqtt-config.json')
 iotService = AssetModelerService(loadedConfig)

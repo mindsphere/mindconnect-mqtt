@@ -1,20 +1,15 @@
 {
 	"AWS_PROD": {
 		"IOT_HOST": "mindconnectmqtt.eu1.mindsphere.io",
-		"CLIENT_ID": "tenantid_rpimqttagent",
-		"DEVICE_NAME": "rpimqttagent",
+		"CLIENT_ID": "tenantid_mqttagent",
+		"DEVICE_NAME": "mqttagent",
 		"TENANT_ID": "tenantid",
 		"CA_PATH": "agent_cert/MindSphereRootCA1.pem",
-		"DEVICE_CERT_PATH": "agent_cert/tenantid_rpimqttagent.pem",
-		"DEVICE_KET_PATH": "agent_cert/tenantid_rpimqttagent.key",
+		"DEVICE_CERT_PATH": "agent_cert/tenantid_mqttagent.pem",
+		"DEVICE_KET_PATH": "agent_cert/tenantid_mqttagent.key",
 		"MODEL_NAME": "JetPumpModel",
 		"GW_URL": "https://gateway.eu1.mindsphere.io",
 		"SGW_URL": "https://southgate.eu1.mindsphere.io",
 		"PLATFORM": "AWS"
-	},
-	"DEVICE": {
-		"UART_UUID": "6E400001-B5A3-F393-E0A9-E50E24DCCA9E",
-		"RX_UUID": "6E400002-B5A3-F393-E0A9-E50E24DCCA9E",
-		"TX_UUID": "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
 	}
 }

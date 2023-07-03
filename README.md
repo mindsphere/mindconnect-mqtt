@@ -18,6 +18,10 @@ The certificates needs to be generated before connecting the device to MQTT Brok
 
 https://documentation.mindsphere.io/MindSphere/howto/howto-managing-ca-certificates.html
 
+
+https://documentation.mindsphere.io/MindSphere/howto/howto-obtaining-auto-generated-agent-certificate.html
+
+
 The generated certificates needs to be placed in the `agent_cert` folder.
 
 ### Updating agent configuration
@@ -51,7 +55,8 @@ After model is created, the instance will be created automatically on start-up o
 
 It uses the file `instance.conf` to check if the instance was created. The file should not exist if instance is not created.
 
-Reference: https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqtt-agent.html
+Reference: 
+https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqtt-agent.html
 
 ### Starting Agent
 
