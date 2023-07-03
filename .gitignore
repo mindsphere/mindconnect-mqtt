@@ -3,4 +3,4 @@
 /workspace.xml
 ./.idea
 ./*.iml
-./lib
+./lib/__pycache__
