@@ -10,6 +10,18 @@ By cloning or downloading this repository, you accept the Development License Ag
 - Use Asset Modeler for model creation and instantiation.
 - Ingesting timeseries data, events and uploading files to Insights Hub. 
 
+## General Steps for using MQTT Client
+
+Steps to Flow for configuring the sample mqtt client
+```mermaid
+flowchart TD
+    A[Create Certificates From Asset Manager] -->|Download| B(Include Certificates in agent_cert folder)
+    B --> C(Update mqtt-config.json with valid values)
+    C--> D{Asset Model Exist ?}
+    D -->|No| E[Run AssetModelCreator.py]
+    D -->|Yes| F[Run MindConnectClient.py]
+    
+```
 
 ## Configuration Steps
 
