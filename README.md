@@ -91,12 +91,39 @@ Command: `python MindConnectClient.py`
 We should get connected status `0` on the console after the client starts running. 
 
 The client demonstrates periodic invocation of below functionalities:
-- timeseries data
-- Events of type SensorInterruptEvent
+- Timeseries data ingest
+- Ingest Events of type SensorInterruptEvent
 - File Upload 
-- Request token
-- Upload to datalake using requested token
+- Request jwt token
+- Upload file to datalake using requested token
 
-  
+For Event upload to work a custom event type should be created. 
+Sample payload to create custom event:
+<code>
+{
+    "name": "SensorInterruptEvent",
+    "parentId": "core.connectivity.event.type.AgentBaseEvent",
+    "ttl": 35,
+    "scope": "LOCAL",
+    "fields": [{
+            "name": "utilizedPercentage",
+            "filterable": true,
+            "required": false,
+            "updatable": true,
+            "type": "INTEGER"
+        },
+        {
+            "name": "measurements",
+            "filterable": true,
+            "required": false,
+            "updatable": true,
+            "type": "DOUBLE"
+        }
+    ]
+}
+</code>
+
+Event type and event upload payload reference:
+https://documentation.mindsphere.io/MindSphere/howto/howto-agent-upload-data.html#uploading-events
 
 Reference: https://documentation.mindsphere.io/MindSphere/howto/howto-send-data-from-mqtt-agent.html
