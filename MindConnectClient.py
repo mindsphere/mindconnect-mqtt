@@ -67,6 +67,10 @@ class IotService:
         self.instance_name = self.device_name + "_DataOwner"
         self.model_name = config['MODEL_NAME']
 
+        self.instance_json_file = "example_json/instance.json"
+        self.timeseries_json_file = "example_json/timeseries.json"
+        self.event_json_file = "example_json/event.json"
+
         # Publish and Subscribe topic details
         self.subscribe_topic = "tc/"+self.tenant+"/"+self.clientId+"/i/cmd_v3/c"
         self.publish_topic = "tc/"+self.tenant+"/"+self.clientId+"/o/cmd_v3/u"
@@ -321,30 +325,14 @@ class IotService:
         except OSError:  # open failed
             print("The file does not exist so need to create instance.")
             self.display_lines("Asset Instance", "does not exist.", "creating instance")
+        
+        instance_file = open(self.instance_json_file, 'r')
+        instance_contents = instance_file.read()
+        instance_contents = instance_contents.replace("<model_name>", self.model_name)
+        instance_contents = instance_contents.replace("<uuid>", str(uuid.uuid4()))
+        instance_json = json.loads(instance_contents)
 
-        instance_json = {
-            "id": str(uuid.uuid4()),
-            "data": {
-                "modelExternalId": self.model_name,
-                #"modelParentAssetId" : "677ae757a0044970a80e3c7083376757",
-                "parameterization": {
-                    "values": [
-                        {
-                            "name": "assetName",
-                            "value": self.instance_name
-                        },
-                        {
-                            "name": "childAssetName1",
-                            "value": "Accumulator"
-                        },
-                        {
-                            "name": "childAssetName2",
-                            "value": "Reservoir"
-                        }
-                    ]
-                }
-            }
-        }
+        
         serialized = json.dumps(instance_json)
         print("sending instance creation message : " + serialized)
         print("sending instance creation message to topic : " + self.publish_topic)
@@ -370,7 +358,6 @@ class IotService:
                 "status": "FAILED",
                 "response": {"message": "Invalid Command Type Entered."}
             }
-
         }
         try:
             self.connection.publish(self.publish_topic, json.dumps(cmd_response), qos=0)
@@ -413,38 +400,22 @@ class IotService:
 
         curr_date_time = self.getCurrentTimestamp()
 
-        ts_data = {
-            "timeseries": [
-                {
-                    "timestamp": curr_date_time,
-                    "values": [
-                        {
-                            "dataPointId": "temperature",
-                            "value": temperature,
-                            "qualityCode": "0"
-                        }
-                    ]
-                },
-                {
-                    "timestamp": curr_date_time,
-                    "values": [
-                        {
-                            "dataPointId": "humidity",
-                            "value": humidity,
-                            "qualityCode": "0"
-                        }
-                    ]
-                }
-            ]
-        }
+        timeseries_file = open(self.timeseries_json_file, 'r')
+        timeseries_contents = timeseries_file.read()
+        timeseries_contents = timeseries_contents.replace("<curr_date_time>", curr_date_time)
+        timeseries_contents = timeseries_contents.replace("<temperature>", str(temperature))
+        timeseries_contents = timeseries_contents.replace("<humidity>", str(humidity))
+        timeseries_json = json.loads(timeseries_contents)
+
         try:
-            self.connection.publish(self.timeseries_publish_topic, json.dumps(ts_data), qos=0)
+            self.connection.publish(self.timeseries_publish_topic, json.dumps(timeseries_json), qos=0)
         except Exception as Argument:
             sys.print_exception(Argument)
             print("Error publishing data : " + str(Argument))
             print("Connection Lost , trying to connect again.")
             self.establish_connection()
         print("sending time series data : " + self.timeseries_publish_topic)
+        print("Sent token generation payload : " + json.dumps(timeseries_json))
 
 
     def check_interrupt_timer_callback(self, t):
@@ -485,30 +456,24 @@ class IotService:
         curr_date_time = self.getCurrentTimestamp()
         severity = randint(2, 4) * 10
         id = uuid.uuid4()
-        event_payload = {
-            "events": [{
-                "id": str(id),
-                "correlationId": str(id.hex),
-                "timestamp": curr_date_time,
-                "severity": str(severity),
-                "type": "SensorInterruptEvent",
-                "description": "IR Sensor Interrupt Event " + str(id.hex),
-                "details": {
-                    "utilizedPercentage": 60,
-                    "measurements": 5
-                }
-            }]
-        }
+
+        event_file = open(self.event_json_file, 'r')
+        event_contents = event_file.read()
+        event_contents = event_contents.replace("<uuid>", str(id))
+        event_contents = event_contents.replace("<uuid_hex>", str(id.hex))
+        event_contents = event_contents.replace("<curr_date_time>", curr_date_time)
+        event_contents = event_contents.replace("<severity>", str(severity))
+        event_json = json.loads(event_contents)
 
         try:
-            self.connection.publish(self.event_publish_topic, json.dumps(event_payload), qos=0)
+            self.connection.publish(self.event_publish_topic, json.dumps(event_json), qos=0)
         except Exception as Argument:
             sys.print_exception(Argument)
             print("Error publishing data : " + str(Argument))
             print("Connection Lost , trying to connect again.")
             self.establish_connection()
         print("Sending Event data to topic : " + self.event_publish_topic)
-        print("Sent Event data payload : " + json.dumps(event_payload))
+        print("Sent Event data payload : " + json.dumps(event_json))
 
 
     def execute_file_upload(self):
@@ -518,14 +483,14 @@ class IotService:
         severity = randint(2, 4) * 10
         unique_id = uuid.uuid4()
 
-        file_content = curr_date_time + " INFO: Connection Successfully Established to broker mindonnect.eu1-int.mindsphere.io\n" + \
-                       curr_date_time + " INFO: Subscribed to topic : tc/punint05/punint05_mqttagent/i/cmd_v3/c\n" + \
+        file_content = curr_date_time + " INFO: Connection Successfully Established to broker mindconnect.eu1-int.mindsphere.io\n" + \
+                       curr_date_time + " INFO: Subscribed to topic : tc/tenant/tenant_mqttagent/i/cmd_v3/c\n" + \
                        curr_date_time + " INFO: Checking and creating asset model instance.\n" + \
                        curr_date_time + " INFO: The Asset Instance Already exist so skipping Instance Creation.\n" + \
                        curr_date_time + " INTERRUPT : Infrared Sensor Event Triggered\n" + \
                        curr_date_time + " INFO: Sent Event data payload\n" + \
                        curr_date_time + " INFO: File Upload Event Triggered\n" + \
-                       curr_date_time + " INFO: Sending File Contents to topic : tc/punint05/punint05_mqttagent/o/mc_v3/f\n" + \
+                       curr_date_time + " INFO: Sending File Contents to topic : tc/tenant/tenant_mqttagent/o/mc_v3/f\n" + \
                        curr_date_time + " INFO: Sent File Upload."
         print("Sending File Upload Data: " + file_content)
 
