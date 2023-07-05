@@ -1,26 +1,19 @@
 #!/usr/bin/python
 # **************************************#
-#  MQTT in Python for RPI               #
+#  MQTT in Python                       #
 # **************************************#
-# Author: Amol Kulkarni                 #
-# Date: May 30, 2022                    #
-# Please feel free to modify the code   #
-# according to your needs.              #
-# **************************************#
-
+# Date: July 05, 2023                   #
 # **************************************#
 # Load necessary libraries
 import base64
 
 import paho.mqtt.client as paho
 import os
-import socket
 import ssl
 from time import sleep
 from random import uniform, randint
 import json
 import logging
-import threading
 from time import sleep
 import datetime
 from lib import config_parser
@@ -320,7 +313,7 @@ class IotService:
         try:
             f = open(self.instance_file_name, "r")
             creation_status = f.readline()
-            if creation_status and creation_status == "CREATED":
+            if creation_status and "CREATED" in creation_status:
                 print("The Asset Instance Already exist so skipping Instance Creation.")
                 self.display_lines("Asset Instance", "already exist.")
                 self.instance_exist = True
@@ -670,7 +663,7 @@ class IotService:
                     first = False
 
 
-env = "AWS_PROD"
+env = "AWS"
 
 print("Loading Config file for Environment " + env)
 loadedConfig = config_parser.parse(env, 'configs/mqtt-config.json')

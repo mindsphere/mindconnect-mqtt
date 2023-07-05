@@ -3,8 +3,6 @@
 # this program will subscribe and send messages to mqtt topics
 
 import paho.mqtt.client as paho
-import os
-import socket
 import ssl
 from time import sleep
 from random import uniform
@@ -13,7 +11,7 @@ import logging
 import threading
 import datetime
 import uuid
-import config_parser
+from lib import config_parser
 import PySimpleGUI as sg
 import jwt
 import time
@@ -227,7 +225,7 @@ class AssetModelerService:
                     serialized = json.dumps(model, sort_keys=True, indent=3)
                     print(serialized)
 
-                    #self.mqttc.publish(self.model_publish_topic, json.dumps(model), qos=0)
+                    self.mqttc.publish(self.model_publish_topic, json.dumps(model), qos=0)
                     print('sent to model creation topic : ' + self.model_publish_topic)
 
                 elif event == "Create Instance":
@@ -240,7 +238,7 @@ class AssetModelerService:
 
                     serialized = json.dumps(instance, sort_keys=True, indent=3)
                     print(serialized)
-                    #self.mqttc.publish(self.instance_publish_topic, json.dumps(instance), qos=0)
+                    self.mqttc.publish(self.instance_publish_topic, json.dumps(instance), qos=0)
                     print('sent to model creation topic : ' + self.instance_publish_topic)
 
                 elif event == sg.WIN_CLOSED:
@@ -251,7 +249,7 @@ class AssetModelerService:
 
         self.window.close()
 
-env = "AWS_PROD"
+env = "AWS"
 
 print("Loading Config file for Environment " + env)
 loadedConfig = config_parser.parse(env, 'configs/mqtt-config.json')

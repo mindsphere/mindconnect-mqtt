@@ -1,5 +1,5 @@
 {
-	"AWS_PROD": {
+	"AWS": {
 		"IOT_HOST": "mindconnectmqtt.eu1.mindsphere.io",
 		"CLIENT_ID": "tenantid_mqttagent",
 		"DEVICE_NAME": "mqttagent",
