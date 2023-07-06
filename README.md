@@ -25,7 +25,7 @@ flowchart TD
     subgraph X[" "]
     direction TB
     D -->|No| E[Run AssetModelCreator.py]
-    E -->|Click **create model**| G[Observe output in text box]
+    E -->|Click `create model`| G[Observe output in text box]
     G --> H[Close the Window \n and start the client]
     
     end
@@ -93,16 +93,17 @@ For asset modeler instance to be created, delete the `instance.conf` file for th
 
 Follow below steps to create Asset Model
 - Run `python AssetModelCreator.py`
+    - On successful connection to broker, observe the log  `Connection returned result: 0` on the console. The console log shows `Connected !!!`.
 - Click on `create model`
+    - Console logs show the payload and topics details
 - Observe the output on the text box
+    - The response is displayed on the text box.
 - Close the window
 
-On successful connection to broker, observe the log  `Connection returned result: 0` on the console. 
-The console log shows `Connected !!!`.
 
 > Please note: Instance need not be created right now, it is expected to get created once MindConnectClient connects to the broker. 
 
-As model is created, the instance will be created automatically on start-up of the agent. 
+Once the model is created, instance will be created automatically on start-up of the agent. 
 
 The client uses the file `instance.conf` to check if the instance was created. The file should not exist for the very first run of client. It gets created on the first run of the client after successful connection with broker. Once the instance is created subsequent connects should not trigger instance creation.
 
@@ -112,9 +113,7 @@ https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqt
 
 ### Starting the Client
 
-Run the agent python file using below command:
-
-Command: `python MindConnectClient.py`
+Run the agent python file using below command: `python MindConnectClient.py`
 
 On successful connection to broker, observe the log  `Connection returned result: 0` on the console. 
 The console log shows `Connected !!!`.
@@ -161,4 +160,22 @@ Sending data from MQTT reference: https://documentation.mindsphere.io/MindSphere
 
 ## Modifying the example jsons
 On successful understanding of the flow on connect and ingest MQTT agent, the example jsons can be modified as per requirements. 
-The json contains certian placeholder which are replaced in the code. 
+The json contains certian placeholder which are replaced in the code.
+
+[Asset Model Payload](example_json/asset_model.json) 
+This is a sample json to create `JetPumpModel`. This model contains `JetPumpType` Asset Type, `dht11Aspect` Aspect with `temperature` and `humidity` variables. 
+
+Asset heirarchy is defined to create a dataowner asset as child asset of the agent. 
+
+Data point mappings are created for `temperature` and `humidity` with the data owner asset. 
+
+The sample json can be modified and accordingly the code can be updated to replace the values at runtime. The model name is configurable in the `mqtt-config.json` file (`MODEL_NAME` key).
+
+[Instance Payload](example_json/instance.json) 
+This sample json uses `JetPumpModel` to instantiate for the current client. Once instantiation message is sent the desired Asset Model gets created in InsightsHub. 
+
+The sample json can be modified and accordingly the code can be updated to replace the values at runtime.
+
+[Timeseries Payload](example_json/timeseries.json)
+
+[Event Payload](example_json/event.json) 
