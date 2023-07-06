@@ -211,6 +211,8 @@ class AssetModelerService:
 
         while 1 == 1:
             #sleep(5)
+            curr_date_time = self.getCurrentTimestamp()
+            print(curr_date_time + " Connected !!!")
             event, values = self.window.read()
             if self.connected_flag:
                 if event == "Create Model":
