@@ -38,26 +38,34 @@ flowchart TD
 ```
 
 ## Configuration Steps
+The configuration steps are based on the above flow chart. Each Flow chart block is explained in detailed manner.
 
-### Creating Certificates
+### Creating Client Certificates
 Certificates needs to be generated before connecting the client to MQTT Broker. Below documentation guides through creation of MQTT certificates. 
 
 **Autogenerate certificate**
+
 For simpler and general understanding, start with auto generated certificates.
 https://documentation.mindsphere.io/MindSphere/howto/howto-obtaining-auto-generated-agent-certificate.html
 
 **Bring your own certificate**
+
 For added security the preferred approach is bring your own certificates.
 https://documentation.mindsphere.io/MindSphere/howto/howto-managing-ca-certificates.html
 
 
-Save the generated certificates in the `agent_cert` folder. 
+Save the generated certificate and private key in the `agent_cert` folder. 
 
+### Downloading Broker Root CA Certificate
 Download the broker certificate from Insights Hub.
 Screen navigation as below:
-Asset Manager -> Connectivity -> Manage MQTT ertificates -> Broker Root CA -> Download broker certificate. 
 
-There are 2 certificates and one private key, all three are required to connect the agent to Broker. 
+> Asset Manager -> Connectivity -> Manage MQTT ertificates -> Broker Root CA -> Download broker certificate. 
+
+Save the `Broker CA Certificate` in the `agent_cert` folder. 
+
+
+> There are two certificates and one private key, all three are required to connect the agent to Broker. All three need to be placed in folder `agent_cert` 
 - Broker Root CA
 - Client Certificate
 - Client Private Key
@@ -65,7 +73,7 @@ There are 2 certificates and one private key, all three are required to connect 
 
 ### Updating agent configuration
 The configuration for connecting the client to MQTT Broker should be updated before starting the client. 
-Update the `mqtt-config.json` file from folder `configs` with valid values.
+Update the [mqtt-config.json](configs/mqtt-config.json) file from folder `configs` with valid values.
 
 Below config properties should contain valid values:
 - CLIENT_ID: tenantId_AgentName. On selecting a certificate the agent name apears on right side of screen.  
@@ -80,7 +88,8 @@ Below config properties should contain valid values:
 Install Python latest version and install the dependencies using below command. 
 run `pip install -r requirements.txt`
 
-Verify the valid certificates in the `agent_cert` folder and `mqtt-config.json` file is updated with the correct values.
+Verify the valid certificates in the `agent_cert` folder and [mqtt-config.json](configs/mqtt-config.json) file is updated with the correct values.
+
 
 ### Creating Asset Model and Instantiation
 This example provides sample json to create Asset Model and instantiate it to create the aspects, asset types and assets along with the mappings. 
@@ -110,6 +119,7 @@ The client uses the file `instance.conf` to check if the instance was created. T
 
 Reference for Asset Model creation: 
 https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqtt-agent.html
+
 
 ### Starting the Client
 
@@ -160,8 +170,10 @@ Sending data from MQTT reference: https://documentation.mindsphere.io/MindSphere
 
 ## Modifying the example jsons
 On successful understanding of the flow on connect and ingest MQTT agent, the example jsons can be modified as per requirements. 
-The json contains certian placeholder which are replaced in the code.
 
+The json contains certian placeholder which are replaced in the code referenced by `<>`.
+
+---
 [Asset Model Payload](example_json/asset_model.json) 
 This is a sample json to create `JetPumpModel`. This model contains `JetPumpType` Asset Type, `dht11Aspect` Aspect with `temperature` and `humidity` variables. 
 
@@ -171,11 +183,39 @@ Data point mappings are created for `temperature` and `humidity` with the data o
 
 The sample json can be modified and accordingly the code can be updated to replace the values at runtime. The model name is configurable in the `mqtt-config.json` file (`MODEL_NAME` key).
 
+Placeholder variables in `asset_model.json`
+- `<uuid>` - It is random generated uuid 
+- `<tenantId>` - It is tenant id
+
+---
 [Instance Payload](example_json/instance.json) 
 This sample json uses `JetPumpModel` to instantiate for the current client. Once instantiation message is sent the desired Asset Model gets created in InsightsHub. 
 
-The sample json can be modified and accordingly the code can be updated to replace the values at runtime.
+The sample json can be modified as per the model defined and accordingly the code can be updated to replace the values at runtime.
 
+Placeholder variables in `instance.json`
+- `<uuid>` - It is random generated uuid 
+- `<model_name>` - It is model name used for instantiation, uses value from `mqtt-config.json` file.
+
+---
 [Timeseries Payload](example_json/timeseries.json)
+This sample json uses the mapped datapoints to ingest data. 
 
+The sample json can be modified as per the data point mappings done in model and accordingly the code can be updated to replace the values at runtime.
+
+Placeholder variables in `timeseries.json`
+- `<curr_date_time>` - It is replaced by current date time
+- `<temperature>` - It is replaced by random integer value
+- `<humidity>` - It is replaced by random integer value
+
+---
 [Event Payload](example_json/event.json) 
+This sample json uses the event payload for the event type `SensorInterruptEvent`. 
+
+The sample json can be modified as per the defined eventType and accordingly the code can be updated to replace the values at runtime.
+
+Placeholder variables in `event.json`
+- `<uuid>` - It is random generated uuid 
+- `<uuid_hex>` - It is random generated uuid's hex value 
+- `<curr_date_time>` - It is replaced by current date time
+- `<severity>` - It is random generated severity for the event
