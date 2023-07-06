@@ -20,7 +20,7 @@ flowchart TD
     J[Download Root CA \nfrom Asset Manager] -->|Download|B
     A[Create Certificates \nfrom Asset Manager] -->|Download| B(Include Certificates in agent_cert folder)
     B --> C(Update mqtt-config.json with correct values)
-    C--> D{Asset Model Exist ?}
+    C--> D{Asset Model \n Exist ?}
     end
     subgraph X[" "]
     direction TB
