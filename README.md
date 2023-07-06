@@ -123,7 +123,7 @@ https://documentation.mindsphere.io/MindSphere/howto/howto-create-data-model-mqt
 
 ### Starting the Client
 
-Run the agent python file using below command: `python MindConnectClient.py`
+Run the agent python file using command: `python MindConnectClient.py`
 
 On successful connection to broker, observe the log  `Connection returned result: 0` on the console. 
 The console log shows `Connected !!!`.
@@ -169,9 +169,9 @@ https://documentation.mindsphere.io/MindSphere/howto/howto-agent-upload-data.htm
 Sending data from MQTT reference: https://documentation.mindsphere.io/MindSphere/howto/howto-send-data-from-mqtt-agent.html
 
 ## Modifying the example jsons
-On successful understanding of the flow on connect and ingest MQTT agent, the example jsons can be modified as per requirements. 
+On successful understanding of connect and ingest MQTT agent, the example jsons can be modified as per requirements. 
 
-The json contains certian placeholder which are replaced in the code referenced by `<>`.
+The json contains certain placeholder which are replaced in the code referenced by `<>`.
 
 ---
 [Asset Model Payload](example_json/asset_model.json) 
