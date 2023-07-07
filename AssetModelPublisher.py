@@ -215,8 +215,8 @@ class AssetModelerService:
             print(curr_date_time + " Connected !!!")
             event, values = self.window.read()
             if self.connected_flag:
-                if event == "Create Model":
-                    print("Creating Model")
+                if event == "Publish Model":
+                    print("Publishing Model")
                     asset_model_file = open(self.assel_model_json_file, 'r')
                     asset_model_contents = asset_model_file.read()
                     asset_model_contents = asset_model_contents.replace("<tenantId>", self.tenant)
@@ -230,7 +230,7 @@ class AssetModelerService:
                     self.mqttc.publish(self.model_publish_topic, json.dumps(model), qos=0)
                     print('sent to model creation topic : ' + self.model_publish_topic)
 
-                elif event == "Create Instance":
+                elif event == "Create Model Instance":
                     print("Creating Instance")
                     instance_file = open(self.instance_json_file, 'r')
                     instance_contents = instance_file.read()

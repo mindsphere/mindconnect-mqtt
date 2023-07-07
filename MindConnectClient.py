@@ -59,12 +59,11 @@ class IotService:
         self.awshost = config['IOT_HOST']
         self.awsport = 8883
         self.tenant = config['TENANT_ID']
-        self.device_name = config['DEVICE_NAME']
         self.clientId = config['CLIENT_ID']
         self.caPath = config['CA_PATH']
         self.certPath = config['DEVICE_CERT_PATH']
         self.keyPath = config['DEVICE_KET_PATH']
-        self.instance_name = self.device_name + "_DataOwner"
+        self.instance_name = self.clientId + "_DataOwner"
         self.model_name = config['MODEL_NAME']
 
         self.instance_json_file = "example_json/instance.json"
