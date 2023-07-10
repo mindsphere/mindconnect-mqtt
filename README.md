@@ -25,7 +25,7 @@ flowchart TD
     subgraph X[" "]
     direction TB
     D -->|No| E[Run AssetModelPublisher.py]
-    E -->|Click **create model**| G[Observe output in text box]
+    E -->|Click 'Publish Model'| G[Observe output in text box]
     G --> H[Close the Window \n and start the client]
     
     end
@@ -38,8 +38,7 @@ flowchart TD
 ```
 
 ## Configuration Demo Video
-Below video can be referred for setup and installation of this example
-Demo
+Below video can be referred for setup and installation of this example Demo
 
 https://github.com/mindsphere/mindconnect-mqtt/assets/127416737/4f7de3e6-3443-4369-9057-2a53e37f3c87
 
