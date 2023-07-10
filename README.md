@@ -41,6 +41,8 @@ flowchart TD
 Below video can be referred for setup and installation of this example
 Demo
 
+https://github.com/mindsphere/mindconnect-mqtt/assets/127416737/4f7de3e6-3443-4369-9057-2a53e37f3c87
+
 ## Configuration Steps
 The configuration steps are based on the above flow chart. Each Flow chart block is explained in detailed manner.
 
