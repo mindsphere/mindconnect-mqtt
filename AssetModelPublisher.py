@@ -59,10 +59,10 @@ class AssetModelerService:
 
         self.layout = [
             [sg.Text("Asset Model and Instance Creator", key="TITLE")],
-            [sg.Button("Create Model")],
+            [sg.Button("Publish Model")],
             [sg.Text("Model Creation Response: ")],
             [sg.Multiline("", size=(100, 15), key="-M-RESPONSE-", font=font)],
-            [sg.Button("Create Instance")],
+            [sg.Button("Create Model Instance")],
             [sg.Text("Instance Creation Response: ")],
             [sg.Multiline("", size=(100, 15), key="-I-RESPONSE-", font=font)]
         ]
@@ -112,6 +112,10 @@ class AssetModelerService:
         previous_text = self.window["-I-RESPONSE-"].DefaultText
         self.window['-I-RESPONSE-'].update(serialized_response + "\n ------------------ \n" + previous_text)
 
+    def getCurrentTimestamp(self):
+        date_now = datetime.datetime.now()
+        curr_date_time = date_now.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        return curr_date_time
 
     def configure_topics(self):
         if self.platform == 'AWS':
@@ -206,6 +210,7 @@ class AssetModelerService:
 
         # mqttc.loop_forever()
         self.mqttc.loop_start()
+
 
     def start_device_connection(self):
 

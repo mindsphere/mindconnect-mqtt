@@ -37,6 +37,10 @@ flowchart TD
     
 ```
 
+## Configuration Demo Video
+Below video can be referred for setup and installation of this example
+Demo
+
 ## Configuration Steps
 The configuration steps are based on the above flow chart. Each Flow chart block is explained in detailed manner.
 
