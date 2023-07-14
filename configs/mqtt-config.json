@@ -1,0 +1,15 @@
+{
+	"AWS": {
+		"IOT_HOST": "mindconnectmqtt.eu1.mindsphere.io",
+		"CLIENT_ID": "tenantid_mqttagent",
+		"DEVICE_NAME": "mqttagent",
+		"TENANT_ID": "tenantid",
+		"CA_PATH": "agent_cert/MindSphereRootCA1.pem",
+		"DEVICE_CERT_PATH": "agent_cert/tenantid_mqttagent.pem",
+		"DEVICE_KET_PATH": "agent_cert/tenantid_mqttagent.key",
+		"MODEL_NAME": "JetPumpModel",
+		"GW_URL": "https://gateway.eu1.mindsphere.io",
+		"SGW_URL": "https://southgate.eu1.mindsphere.io",
+		"PLATFORM": "AWS"
+	}
+}

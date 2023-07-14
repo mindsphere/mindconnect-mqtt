@@ -1,0 +1,37 @@
+==fundamentals|sensor_map
+sensor1|Response Time|2
+sensor1|Sensitivity|91
+sensor1|Range|5
+sensor1|Precision|90
+sensor1|Resolution|1024*1024 
+sensor1|Accuracy|96
+sensor1|Offset|2
+sensor1|Linearity|5
+sensor1|Hysteresis|10
+==fundamentals|sensor_map
+sensor2|Response Time|3
+sensor2|Sensitivity|92
+sensor2|Range|4
+sensor2|Precision|91
+sensor2|Resolution|1024*1024 
+sensor2|Accuracy|97
+sensor2|Offset|3
+sensor2|Linearity|4
+sensor2|Hysteresis|11
+==fundamentals|motor_map
+motor1|V|208 V
+motor1|I|1.5 A
+motor1|I|1.7 A
+motor1|f|60 Hz
+motor1|P|49 W
+==fundamentals|motor_map
+motor2|V|208 V
+motor2|I|1.5 A
+motor2|I|1.7 A
+motor2|f|60 Hz
+motor2|P|49 W
+==fundamentals|actuator_map
+displacement|1
+Precision|1
+Accuracy|97
+Response Time|3

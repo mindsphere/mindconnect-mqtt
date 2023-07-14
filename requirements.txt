@@ -1,0 +1,10 @@
+certifi==2023.5.7
+charset-normalizer==3.1.0
+idna==3.4
+oauthlib==3.1.0
+paho-mqtt==1.6.1
+PyJWT==2.7.0
+PySimpleGUI==4.60.5
+requests==2.31.0
+schedule==1.2.0
+urllib3==2.0.3

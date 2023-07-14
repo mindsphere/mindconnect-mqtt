@@ -1,0 +1,24 @@
+{
+  "timeseries": [
+    {
+      "timestamp": "<curr_date_time>",
+      "values": [
+        {
+          "dataPointId": "temperature",
+          "value": "<temperature>",
+          "qualityCode": "0"
+        }
+      ]
+    },
+    {
+      "timestamp": "<curr_date_time>",
+      "values": [
+        {
+          "dataPointId": "humidity",
+          "value": "<humidity>",
+          "qualityCode": "0"
+        }
+      ]
+    }
+  ]
+}

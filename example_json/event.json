@@ -1,0 +1,14 @@
+{
+  "events": [{
+      "id": "<uuid>",
+      "correlationId": "<uuid_hex>",
+      "timestamp": "<curr_date_time>",
+      "severity": "<severity>",
+      "type": "SensorInterruptEvent",
+      "description": "IR Sensor Interrupt Event <uuid_hex>",
+      "details": {
+          "utilizedPercentage": 60,
+          "measurements": 5
+      }
+  }]
+}
