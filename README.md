@@ -1,6 +1,6 @@
 # MindConnect MQTT
 
-Sample python code for getting started to securely connect your MindConnect MQTT on-site devices in a saleable manner to Insights Hub. 
+Sample python code for getting started to securely connect your MindConnect MQTT on-site devices in a scaleable manner to Insights Hub. 
 
 By cloning or downloading this repository, you accept the Development License Agreement, which can be found at https://documentation.mindsphere.io/MindSphere/license.html 
 
@@ -40,7 +40,8 @@ flowchart TD
 ## Configuration Demo Video
 Below video can be referred for setup and installation of this example Demo
 
-https://github.com/mindsphere/mindconnect-mqtt/assets/127416737/4f7de3e6-3443-4369-9057-2a53e37f3c87
+https://github.com/mindsphere/mindconnect-mqtt/assets/127416737/1d0dfe9d-cd71-43f9-9317-e73a84ca679a
+
 
 ## Configuration Steps
 The configuration steps are based on the above flow chart. Each Flow chart block is explained in detailed manner.
