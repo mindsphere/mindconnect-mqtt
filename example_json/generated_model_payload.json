@@ -1,0 +1,61 @@
+{
+    "id": "9bf36d4a-db41-4efe-8e9e-104d0e98b0b3",
+    "data": {
+        "typeModel": {
+            "aspectTypes": [
+                {
+                    "id": "asmten1.dht11Aspect",
+                    "name": "dht11Aspect",
+                    "description": "Variables of a Humidity Sensor",
+                    "category": "dynamic",
+                    "variables": [
+                        {
+                            "name": "temperature",
+                            "dataType": "DOUBLE",
+                            "unit": "C",
+                            "referenceId": "24a2f213f5cf41818809b81262154918"
+                        },
+                        {
+                            "name": "humidity",
+                            "dataType": "DOUBLE",
+                            "unit": "rh",
+                            "referenceId": "5858ef481e6c46c582f917be46b97554"
+                        }
+                    ],
+                    "referenceId": "861f5e217e5a4725b8250e3e05988d4d"
+                }
+            ],
+            "assetTypes": [
+                {
+                    "id": "asmten1.jetPumpType",
+                    "name": "JetPumpType",
+                    "description": "Asset type for individual jet pump in a line",
+                    "parentTypeId": "core.basicasset",
+                    "instantiable": true,
+                    "variables": [],
+                    "referenceId": "c0b4a524c5074f87805b9f0ce00bfef5",
+                    "aspects": [
+                        {
+                            "name": "dht11Aspect",
+                            "aspectTypeId": "asmten1.dht11Aspect",
+                            "referenceId": "b8be30a6f61b4ebb9343498f30250ad1"
+                        }
+                    ]
+                }
+            ]
+        },
+        "instanceModel": {
+            "assets": [
+                {
+                    "referenceId": "JetPumpDataOwnerAsset",
+                    "typeId": "asmten1.jetPumpType",
+                    "name": "JetPumpDataOwnerAsset",
+                    "description": "This is the asset to store data against."
+                }
+            ]
+        },
+        "mappingModel": {
+            "mappings": []
+        }
+    }
+}

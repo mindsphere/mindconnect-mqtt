@@ -108,42 +108,12 @@ On successful connection to broker, observe the log  `Connection returned result
 The console log shows `Connected !!!`.
 
 The client demonstrates periodic invocation of below functionalities, it can be observed on InsightsHub:
+- Asset Model synchronization from local to cloud
 - Timeseries data ingest
-- Ingest Events of type SensorInterruptEvent
+- Ingest Events of type AgentBaseEvent
 - File Upload 
 - Request JWT token
 - Upload file to datalake using requested token
-
-
-Event ingestion requires custom event type `SensorInterruptEvent`.
-Use the below payload to create custom event type:
-
-```json
-{
-    "name": "SensorInterruptEvent",
-    "parentId": "core.connectivity.event.type.AgentBaseEvent",
-    "ttl": 35,
-    "scope": "LOCAL",
-    "fields": [{
-            "name": "utilizedPercentage",
-            "filterable": true,
-            "required": false,
-            "updatable": true,
-            "type": "INTEGER"
-        },
-        {
-            "name": "measurements",
-            "filterable": true,
-            "required": false,
-            "updatable": true,
-            "type": "DOUBLE"
-        }
-    ]
-}
-```
-
-Event type and event upload payload reference:
-https://documentation.mindsphere.io/MindSphere/howto/howto-agent-upload-data.html#uploading-events
 
 Sending data from MQTT reference: https://documentation.mindsphere.io/MindSphere/howto/howto-send-data-from-mqtt-agent.html
 
@@ -160,21 +130,13 @@ Asset heirarchy is defined to create a dataowner asset as child asset of the age
 
 Data point mappings are created for `temperature` and `humidity` with the data owner asset. 
 
-The sample JSON can be modified and accordingly the code can be updated to replace the values at runtime. The model name is configurable in the `mqtt-config.json` file (`MODEL_NAME` key).
+The sample JSON can be modified and accordingly the code can be updated to replace the values at runtime.
 
-Placeholder variables in `asset_model.json`
+Placeholder variables in `local_asset_model.json`
 - `<uuid>` - It is random generated uuid 
 - `<tenantId>` - It is tenant id
 
----
-[Instance Payload](example_json/instance.json) 
-This sample JSON uses `JetPumpModel` to instantiate for the current client. Once instantiation message is sent the desired Asset Model gets created in InsightsHub. 
-
-The sample JSON can be modified as per the model defined and accordingly the code can be updated to replace the values at runtime.
-
-Placeholder variables in `instance.json`
-- `<uuid>` - It is random generated uuid 
-- `<model_name>` - It is model name used for instantiation, uses value from `mqtt-config.json` file.
+`local_asset_model.json` file gets monitored for any changes and same are then synchronized with cloud model.
 
 ---
 [Timeseries Payload](example_json/timeseries.json)
@@ -189,7 +151,7 @@ Placeholder variables in `timeseries.json`
 
 ---
 [Event Payload](example_json/event.json) 
-This sample JSON uses the event payload for the event type `SensorInterruptEvent`. 
+This sample JSON uses the event payload for the event type `AgentBaseEvent`. 
 
 The sample JSON can be modified as per the defined eventType and accordingly the code can be updated to replace the values at runtime.
 
@@ -198,3 +160,6 @@ Placeholder variables in `event.json`
 - `<uuid_hex>` - It is random generated uuid's hex value 
 - `<curr_date_time>` - It is replaced by current date time
 - `<severity>` - It is random generated severity for the event
+
+Custom Events can also be ingested by using below documentation:
+https://documentation.mindsphere.io/MindSphere/howto/howto-agent-upload-data.html#uploading-events
