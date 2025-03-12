@@ -1,0 +1,29 @@
+{
+  "machines": [
+    {
+      "sources": [
+        {
+          "type": "Double",
+          "state": {
+            "name": "node1"
+          },
+          "tags": [
+            {
+              "timestamp": "<curr_date_time>",
+              "Key": "moisture",
+              "Values": [
+                "<moisture>"
+              ]
+            },
+            {
+              "Key": "version",
+              "Values": [
+                "1"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

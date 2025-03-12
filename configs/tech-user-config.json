@@ -1,0 +1,7 @@
+{
+  "AWS_PROD": {
+    "GATEWAY_URL": "https://gateway.eu1.mindsphere.io",
+    "APP_ID": "asmten1-mobileapp-v1.0.0",
+    "APP_SECRET": "xxxxxx"
+  }
+}

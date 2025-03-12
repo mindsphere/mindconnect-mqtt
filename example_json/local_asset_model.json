@@ -1,0 +1,76 @@
+{
+    "id": "<uuid>",
+    "data": {
+        "typeModel": {
+            "aspectTypes": [
+                {
+                    "id": "<tenantId>.dht11Aspect",
+                    "name": "dht11Aspect",
+                    "description": "Variables of a Humidity Sensor",
+                    "category": "dynamic",
+                    "variables": [
+                        {
+                            "name": "temperature",
+                            "dataType": "DOUBLE",
+                            "unit": "C"
+                        },
+                        {
+                            "name": "humidity",
+                            "dataType": "DOUBLE",
+                            "unit": "rh"
+                        }
+                    ]
+                }
+            ],
+            "assetTypes": [
+                {
+                    "id": "<tenantId>.jetPumpType",
+                    "name": "JetPumpType",
+                    "description": "Asset type for individual jet pump in a line",
+                    "parentTypeId": "core.basicasset",
+                    "instantiable": true,
+                    "variables": [],
+                    "referenceId": "JetPumpType-assetType-refId",
+                    "aspects": [
+                        {
+                            "name": "dht11Aspect",
+                            "aspectTypeId": "<tenantId>.dht11Aspect"
+                        }
+                    ]
+                }
+            ]
+        },
+        "instanceModel": {
+            "assets": [
+                {
+                    "referenceId": "JetPumpDataOwnerAsset",
+                    "typeId": "<tenantId>.jetPumpType",
+                    "name": "JetPumpDataOwnerAsset",
+                    "description": "This is the asset to store data against."
+                }
+            ]
+        },
+        "mappingModel": {
+            "mappings": [
+                {
+                    "dataPointId": "temperature",
+                    "assetReferenceId": "JetPumpDataOwnerAsset",
+                    "aspectName": "dht11Aspect",
+                    "variableName": "temperature"
+                },
+                {
+                    "dataPointId": "humidity",
+                    "assetReferenceId": "JetPumpDataOwnerAsset",
+                    "aspectName": "dht11Aspect",
+                    "variableName": "humidity"
+                }
+            ]
+        }
+    }
+}
+
+
+
+
+
+

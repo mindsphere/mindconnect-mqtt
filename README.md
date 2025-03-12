@@ -1,6 +1,6 @@
 # MindConnect MQTT
 
-Sample python code for getting started to securely connect your MindConnect MQTT on-site devices in a saleable manner to Insights Hub. 
+Sample python code for getting started to securely connect your MindConnect MQTT on-site devices in an automated manner to Insights Hub. 
 
 By cloning or downloading this repository, you accept the Development License Agreement, which can be found at https://documentation.mindsphere.io/MindSphere/license.html 
 
@@ -20,27 +20,11 @@ flowchart TD
     J[Download Broker Root CA\nfrom Asset Manager] -->A
     A[Create Certificates \nfrom Asset Manager] -->B(Include Certificates in agent_cert folder)
     B --> C(Update mqtt-config.json with correct values)
-    C--> D{Asset Model Exist ?}
-    end
-    subgraph X[" "]
-    direction TB
-    D -->|No| E[Run AssetModelPublisher.py]
-    E -->|Click 'Publish Model'| G[Observe output in text box]
-    G --> H[Close the Window \n and start the client]
-    
-    end
-    subgraph Y[" "]
-    direction TB
-    D -->|Yes| F[Run MindConnectClient.py]
-    F --> I[Observe Data on \nthe child dataowner asset]
+    C--> D(Run MindConnectClient.py)
+	D --> E(Observe Data on \nthe child dataowner asset)
     end
     
 ```
-
-## Configuration Demo Video
-Below video can be referred for setup and installation of this example Demo
-
-https://github.com/mindsphere/mindconnect-mqtt/assets/127416737/4f7de3e6-3443-4369-9057-2a53e37f3c87
 
 ## Configuration Steps
 The configuration steps are based on the above flow chart. Each Flow chart block is explained in detailed manner.
@@ -95,30 +79,21 @@ run `pip install -r requirements.txt`
 Verify the valid certificates in the `agent_cert` folder and [mqtt-config.json](configs/mqtt-config.json) file is updated with the correct values.
 
 
-### Publishing Asset Model and Instantiation
-This example provides sample json to publish Asset Model and instantiate it to create the aspects, asset types and assets along with the mappings. 
+### Asset Model Instantiation
+This example provides sample Asset Model json which is used to instantiate Asset Model to create the aspects, asset types and assets along with the mappings. 
 
-The example_json folder consists of sample jsons of asset model, instance and timeseries data. This example demonstrates Connect & Ingest to InsightsHub using these jsons. Later these jsons can be modified as per requirements.
+The example_json folder consists of sample jsons of asset model (local_asset_model.json), timeseries and event data. This example demonstrates Connect & Ingest to InsightsHub using these jsons. Later these jsons can be modified as per requirements.
 
 The json files consists of placeholders enclosed in <>. The values are replaced in the code using the configuration and auto generated values. 
 
-For asset model's instance to be created, delete the `instance.conf` file for the first run (If Present in main directory). 
-
-Follow below steps to publish Asset Model
-- Run `python AssetModelPublisher.py`
-    - On successful connection to broker, observe the log  `Connection returned result: 0` on the console. The console log shows `Connected !!!`.
-- Click on `Publish Model`
-    - Console logs show the payload and topics details
-- Observe the output
-    - The response is displayed on the text box.
-- Close the window
-
-
-> Please note: Model Instance need not be created right now, it is expected to get created once MindConnectClient connects to the broker. 
-
-Once the model is created, instance will be created automatically on start-up of the agent. 
-
-The client uses the file `instance.conf` to check if the instance was created. The file should not exist for the very first run of client. It gets created on the first run of the client after successful connection with broker. Once the instance is created subsequent connects will not trigger instance creation.
+Below are the list of files which are being used by the code.
+- [local_asset_model.json](example_json/local_asset_model.json) : This file contains the asset model that needs to be synchronized in cloud
+- [timeseries.json](example_json/timeseries.json) 
+- [update_local_asset_model.json](example_json/update_local_asset_model.json) 
+- [cloud_asset_model.json](example_json/cloud_asset_model.json) 
+- [custom_timeseries.json](example_json/custom_timeseries.json) 
+- [event.json](example_json/event.json) 
+- [generated_model_payload.json](example_json/generated_model_payload.json)
 
 
 Reference for Asset Model Definition: 
@@ -178,7 +153,7 @@ On successful understanding of connect and ingest MQTT agent, the example JSON's
 The JSON contains certain placeholder which are replaced in the code referenced by `<>`.
 
 ---
-[Asset Model Payload](example_json/asset_model.json) 
+[Asset Model Payload](example_json/local_asset_model.json) 
 This is a sample JSON to create `JetPumpModel`. This model contains `JetPumpType` Asset Type, `dht11Aspect` Aspect with `temperature` and `humidity` variables. 
 
 Asset heirarchy is defined to create a dataowner asset as child asset of the agent. 

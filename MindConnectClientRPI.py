@@ -26,6 +26,11 @@ import schedule
 from lib import config_parser
 from lib.AssetModelHelper import ModelState, AssetModelHelper
 
+# RPI imports
+from pigpio_dht import DHT11, DHT22
+import RPi.GPIO as GPIO
+from pigpio_encoder.rotary import Rotary
+
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -34,25 +39,51 @@ class IotService:
     agent_state_conf = "agent.ini"
     instance_exist = False
 
-    http_token = ""
-
     # **************************************#
     # Hardware Pin Objects:
     # Onboard LED on off indicating running state of the Device
+    GPIO.setmode(GPIO.BCM)
 
     # Firmware LED details
+    led_gpio = 18
+    GPIO.setup(led_gpio, GPIO.OUT)
+    GPIO.output(led_gpio, GPIO.LOW)
+
+    red_gpio = 21
+    GPIO.setup(red_gpio, GPIO.OUT)
+    GPIO.output(red_gpio, GPIO.LOW)
+    yellow_gpio = 20
+    GPIO.setup(yellow_gpio, GPIO.OUT)
+    GPIO.output(yellow_gpio, GPIO.LOW)
+    green_gpio = 16
+    GPIO.setup(green_gpio, GPIO.OUT)
+    GPIO.output(green_gpio, GPIO.LOW)
 
     # DHT Sensor Setup
+    dht_gpio = 12
+    dht_sensor = DHT11(dht_gpio)
+
+    dht2_gpio = 22
+    dht2_sensor = DHT22(dht2_gpio)
 
     # Buzzer Setup
 
-    # Display Setup
+    # IR Sensor Setup
+    IR_PIN = 5
+    GPIO.setup(IR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     # Motor Setup
+    in1 = 24
+    in2 = 23
+    en = 25
 
-    # Light Control pin definition
-
-    # Infrared Sensor
+    GPIO.setup(in1, GPIO.OUT)
+    GPIO.setup(in2, GPIO.OUT)
+    GPIO.setup(en, GPIO.OUT)
+    GPIO.output(in1, GPIO.LOW)
+    GPIO.output(in2, GPIO.LOW)
+    motor = GPIO.PWM(en, 1000)
+    motor.start(95)
 
     def __init__(self, config):
         self.config = config
@@ -71,6 +102,8 @@ class IotService:
         self.asset_model_helper = AssetModelHelper(self.tenant)
         self.state_config = configparser.ConfigParser()
 
+        self.http_token = ""
+
         self.timeseries_json_file = "example_json/timeseries.json"
         self.custom_timeseries_json_file = "example_json/custom_timeseries.json"
         self.event_json_file = "example_json/event.json"
@@ -79,6 +112,11 @@ class IotService:
 
         self.gateway_url = config['GW_URL']
         self.southgate_url = config['SGW_URL']
+
+        self.my_rotary = Rotary(clk_gpio=13, dt_gpio=19, sw_gpio=26)
+        self.my_rotary.setup_rotary(rotary_callback=self.rotary_callback, up_callback=self.up_callback,
+                                    down_callback=self.down_callback)
+        self.my_rotary.setup_switch(sw_short_callback=self.sw_short)
 
         # Connection Variable for MQTTClient declaration.
         self.connection = paho.Client(callback_api_version=paho.CallbackAPIVersion.VERSION2,
@@ -89,7 +127,10 @@ class IotService:
         self.check_agent_state()
 
         schedule.every(60).seconds.do(self.insert_timeseries_callback)
-        schedule.every(120).seconds.do(self.infrared_sensor_interrupt)
+
+        #schedule.every(120).seconds.do(self.infrared_sensor_interrupt)
+        self.ir_interrupted = False
+        GPIO.add_event_detect(self.IR_PIN, GPIO.FALLING, callback=self.check_interrupt_timer_callback, bouncetime=500)
 
         schedule.every(30).minutes.do(self.refresh_http_token)
 
@@ -196,7 +237,11 @@ class IotService:
 
             if status == ModelState.MODEL_SYNCHRONIZATION_SUCCESSFUL.name:
                 self.instance_exist = True
-
+                GPIO.output(self.red_gpio, GPIO.LOW)
+                GPIO.output(self.yellow_gpio, GPIO.HIGH)
+            else:
+                GPIO.output(self.red_gpio, GPIO.HIGH)
+                GPIO.output(self.yellow_gpio, GPIO.LOW)
             self.print_state(state)
 
     def display_lines(self, *argv):
@@ -268,6 +313,13 @@ class IotService:
             self.execute_actuator_command(cmd_message)
         elif commandType == "light_control":
             self.execute_light_control_cmd(cmd_message)
+        elif commandType == "file_control":
+            self.upload_to_datalake()
+            self.send_execution_success_response(cmd_message)
+        elif commandType == "model_download":
+            self.send_model_download_message()
+            sleep(3)
+            self.send_execution_success_response(cmd_message)
         else:
             print("Invalid Command")
 
@@ -285,9 +337,14 @@ class IotService:
         sleep(3)
 
         if execute_command == 'START':
+            self.motor.start(95)
+            GPIO.output(self.in1, GPIO.HIGH)
+            GPIO.output(self.in2, GPIO.LOW)
             print("Executing Actuator Command : START")
 
         elif execute_command == 'STOP':
+            GPIO.output(self.in1, GPIO.LOW)
+            GPIO.output(self.in2, GPIO.LOW)
             print("Executing Actuator Command : STOP")
 
         else:
@@ -362,6 +419,34 @@ class IotService:
         self.display_lines("Light Ctrl CMD", "Command : ", execute_command, "Processed !!!")
         print("sending command response to topic : " + self.publish_topic)
         print("sending command response payload : " + json.dumps(cmd_response))
+
+    def send_execution_success_response(self, cmd_message):
+        print("Sending Execution Completion Response")
+        request_id = cmd_message["id"]
+        job_id = cmd_message["data"]["jobId"]
+        response = "Successfully Executed "
+
+        cmd_response = {
+            "id": str(uuid.uuid4()),
+            "requestId": request_id,
+            "data": {
+                "timestamp": self.get_current_timestamp(),
+                "jobId": job_id,
+                "status": "EXECUTED",
+                "response": {"message": response}
+            }
+        }
+
+        try:
+            self.connection.publish(self.publish_topic, json.dumps(cmd_response), qos=0)
+        except Exception as Argument:
+            print("Error publishing data : " + str(Argument))
+            print("Connection Lost , trying to connect again.")
+            self.establish_connection()
+
+        print("sending command response to topic : " + self.publish_topic)
+        print("sending command response payload : " + json.dumps(cmd_response))
+
 
     def execute_firmware_update(self, cmd_message):
         request_id = cmd_message["id"]
@@ -446,9 +531,11 @@ class IotService:
 
     def insert_timeseries_callback(self):
         print("Timeseries timer callback triggered")
+        GPIO.output(self.led_gpio, GPIO.HIGH)
         self.insert_standard_timeseries()
         if self.use_custom_timeseries:
             self.insert_custom_timeseries()
+        GPIO.output(self.led_gpio, GPIO.LOW)
 
     def insert_custom_timeseries(self):
         print("Custom Time Series called")
@@ -489,6 +576,20 @@ class IotService:
             print("The instance is not created so skipping the data ingestion.")
             return
 
+        try:
+            while 1 == 1:
+                result = self.dht_sensor.read()
+                humidity = round(result["humidity"], 2)
+                temperature = round(result["temp_c"], 2)
+                valid = result["valid"]
+                if valid == True:
+                    break
+                print("Invalid Value read from Sensor1, reading again in 2 seconds.")
+                sleep(2)
+        except Exception as Argument:
+            print("Error publishing data : " + str(Argument))
+            print("Connection Lost , trying to connect again.")
+
         print(u"Temperature: {:g}\u00b0C, Humidity: {:g}%".format(temperature, humidity))
 
         self.display_lines("Sending Data",
@@ -514,9 +615,27 @@ class IotService:
 
     def check_interrupt_timer_callback(self, t):
         print("checking interrupt.")
-        self.infrared_sensor_interrupt({})
+        self.infrared_sensor_interrupt()
+
+    def rotary_callback(self, counter):
+        print("General rotation")
+        print("Counter value: ", counter)
+
+    def sw_short(self):
+        print("Switch pressed")
+
+
+    def up_callback(self, counter):
+        print("Up rotation")
+        print("Counter value: ", counter)
+
+
+    def down_callback(self, counter):
+        print("Down rotation")
+        print("Counter value: ", counter)
 
     def refresh_http_token(self):
+        print("Refresh Http Token Called")
         print("Refresh Http Token Called")
 
         token_req_id = str(uuid.uuid4())
@@ -537,7 +656,9 @@ class IotService:
         print('Infrared Sensor Event Triggered')
         self.display_lines("Motion Sensor", "INTERRUPT !!!  : ", "Shut Down JetPump.")
         sleep(1)
-        print("Stopping Actuator due to Interrupt.")
+        #print("Stopping Actuator due to Interrupt.")
+        #GPIO.output(self.in1, GPIO.LOW)
+        #GPIO.output(self.in2, GPIO.LOW)
 
         curr_date_time = self.get_current_timestamp()
         severity = randint(2, 4) * 10
@@ -601,6 +722,10 @@ class IotService:
 
     def upload_to_datalake(self):
 
+        if self.http_token == "":
+            print("No http token yet so returning")
+            return
+
         auth_headers = {
             'Content-Type': 'application/json',
             "Authorization": "Bearer " + self.http_token
@@ -620,7 +745,6 @@ class IotService:
                 {"path": assetId + "/sensor-map-" + curr_date_time + ".obj"},
                 {"path": assetId + "/quality-snapshot-" + curr_date_time + ".jpeg"}
             ]}
-
 
         response = requests.post(self.southgate_url + '/api/datalake/v3/generateUploadObjectUrls',
                                  data=json.dumps(payload),
@@ -644,6 +768,20 @@ class IotService:
         upload_response = requests.put(sensor_file_signedUrl, data=file_content)
 
         print("sensor map file upload status : " + str(upload_response.status_code))
+
+        #amol camera
+        #image_location = './analytics/quality-snapshot.jpg'
+        # try:
+        #    self.camera.start_preview()
+        #    sleep(3)
+        #    self.camera.capture(image_location)
+        #    self.camera.stop_preview()
+        # except Exception as Argument:
+        #    sys.print_exception(Argument)
+        #    print("Error capturing Camera Image : " + str(Argument))
+        #    print("falling back to default image ")
+        #    image_location = "./analytics/fallback_image.jpeg"
+
         image_location = 'upload_files/quality-snapshot-clear.jpeg'
 
         sensor_image_file = open(image_location, 'rb')
@@ -691,7 +829,7 @@ class IotService:
             print("Error establishing connection : " + str(Argument))
 
         print("Connection Successfully Established to broker {}".format(self.broker_host))
-        self.display_lines("MQTT Connection", "Established", "to Insights Hub")
+        self.display_lines("MQTT Connection", "Established", "to MindSphere")
 
     def generate_jwt_token(self):
         print("Generating JWT Token for RabbitMQ MQTT Broker...")
@@ -800,6 +938,8 @@ class IotService:
         state = self.state_config['DEFAULT']['model-synchronization-state']
         state_config_sha = self.state_config['DEFAULT']['model-synchronization-sha']
         if state == ModelState.INITIATE_MODEL_DOWNLOAD.name:
+            GPIO.output(self.red_gpio, GPIO.HIGH)
+            GPIO.output(self.yellow_gpio, GPIO.LOW)
             self.send_model_download_message()
             self.update_state_in_agent_state_conf(ModelState.INITIATED_MODEL_DOWNLOAD)
         elif state == ModelState.MODEL_DOWNLOADED.name:
@@ -824,10 +964,14 @@ class IotService:
             self.update_sha_in_agent_state_conf()
             self.send_model_download_message()
             self.update_state_in_agent_state_conf(ModelState.MODEL_SYNCHRONIZATION_FINISHED)
+            GPIO.output(self.red_gpio, GPIO.LOW)
+            GPIO.output(self.yellow_gpio, GPIO.HIGH)
         elif state == ModelState.MODEL_SYNCHRONIZATION_FAILED.name:
             print("Failed: Model in synchronized state with failures")
             self.update_sha_in_agent_state_conf()
             self.update_state_in_agent_state_conf(ModelState.MODEL_SYNCHRONIZATION_FINISHED)
+            GPIO.output(self.red_gpio, GPIO.HIGH)
+            GPIO.output(self.yellow_gpio, GPIO.LOW)
         elif state == ModelState.MODEL_SYNCHRONIZATION_FINISHED.name:
             local_model_file_sha = self.asset_model_helper.sha256sum()
             if state_config_sha != local_model_file_sha:
@@ -860,6 +1004,7 @@ class IotService:
                     print("Error running pending schedulers ", e)
                 if self.connected_flag:
                     print("Connected !!!")
+                    GPIO.output(self.green_gpio, GPIO.HIGH)
                     sleep(10)
                     curr_date_time = self.get_current_timestamp()
                     print(curr_date_time + " Connected !!!")
@@ -873,6 +1018,16 @@ class IotService:
             self.connection.disconnect()
             self.connection.loop_stop()
 
+        except Exception as e:
+            # this catches ALL other exceptions including errors.
+            # You won't get any error messages for debugging
+            # so only use it once your code is working
+            print("Error running main loop " + str(e))
+            self.connection.disconnect()
+            self.connection.loop_stop()
+
+        finally:
+            GPIO.cleanup()
 
 env = "AWS"
 #env = "RANCHER_INT"

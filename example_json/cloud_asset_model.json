@@ -1,0 +1,105 @@
+{
+    "id": "01JBE9X7JY3Y613G0Z7YA1ETM9",
+    "namespace": "11ec1c40ea904ba5ad164771b41386fb",
+    "typeModel": {
+        "aspectTypes": [
+            {
+                "id": "asmten1.dht11Aspect",
+                "name": "dht11Aspect",
+                "description": "Variables of a Humidity Sensor",
+                "category": "dynamic",
+                "referenceId": "861f5e217e5a4725b8250e3e05988d4d",
+                "variables": [
+                    {
+                        "name": "temperature",
+                        "dataType": "DOUBLE",
+                        "unit": "C",
+                        "referenceId": "24a2f213f5cf41818809b81262154918"
+                    },
+                    {
+                        "name": "humidity",
+                        "dataType": "DOUBLE",
+                        "unit": "rh",
+                        "referenceId": "5858ef481e6c46c582f917be46b97554"
+                    },
+                    {
+                        "name": "moisture",
+                        "dataType": "DOUBLE",
+                        "qualityCode": true,
+                        "unit": "rh",
+                        "searchable": false,
+                        "length": null,
+                        "defaultValue": null,
+                        "referenceId": "01JBE9XJ9N4Z8GQNSE7RQP5YNK"
+                    },
+                    {
+                        "name": "nozzle_temperature",
+                        "dataType": "DOUBLE",
+                        "qualityCode": true,
+                        "unit": "C",
+                        "searchable": false,
+                        "length": null,
+                        "defaultValue": null,
+                        "referenceId": "01JBE9XJ9PVWX86Z2AF4ZMV33V"
+                    }
+                ]
+            }
+        ],
+        "assetTypes": [
+            {
+                "id": "asmten1.jetPumpType",
+                "name": "JetPumpType",
+                "description": "Asset type for individual jet pump in a line",
+                "parentTypeId": "core.basicasset",
+                "instantiable": true,
+                "variables": [],
+                "referenceId": "c0b4a524c5074f87805b9f0ce00bfef5",
+                "aspects": [
+                    {
+                        "name": "dht11Aspect",
+                        "aspectTypeId": "asmten1.dht11Aspect",
+                        "referenceId": "b8be30a6f61b4ebb9343498f30250ad1"
+                    }
+                ]
+            }
+        ]
+    },
+    "instanceModel": {
+        "assets": [
+            {
+                "name": "JetPumpDataOwnerAsset",
+                "typeId": "asmten1.jetPumpType",
+                "description": "This is the asset to store data against.",
+                "referenceId": "JetPumpDataOwnerAsset"
+            }
+        ]
+    },
+    "mappingModel": {
+        "mappings": [
+            {
+                "aspectName": "dht11Aspect",
+                "variableName": "temperature",
+                "dataPointId": "temperature",
+                "assetReferenceId": "JetPumpDataOwnerAsset",
+                "assetId": "3068cc38818e4861b179d1a12967c5a1",
+                "referenceId": "0ff324899d0946d2b4c47207e81b0f89"
+            },
+            {
+                "aspectName": "dht11Aspect",
+                "variableName": "humidity",
+                "dataPointId": "humidity",
+                "assetReferenceId": "JetPumpDataOwnerAsset",
+                "assetId": "3068cc38818e4861b179d1a12967c5a1",
+                "referenceId": "20ad62d021e44932aa8da51a6f1378a9"
+            },
+            {
+                "aspectName": "dht11Aspect",
+                "variableName": "nozzle_temperature",
+                "dataPointId": "nozzle_temperature",
+                "assetReferenceId": "JetPumpDataOwnerAsset",
+                "assetId": "3068cc38818e4861b179d1a12967c5a1",
+                "referenceId": "5cb388eeeacd49bbbe5f47b266801a03"
+            }
+        ]
+    }
+}

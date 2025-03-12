@@ -1,15 +1,28 @@
 {
 	"AWS": {
 		"IOT_HOST": "mindconnectmqtt.eu1.mindsphere.io",
-		"CLIENT_ID": "tenantid_mqttagent",
-		"DEVICE_NAME": "mqttagent",
-		"TENANT_ID": "tenantid",
-		"CA_PATH": "agent_cert/MindSphereRootCA1.pem",
-		"DEVICE_CERT_PATH": "agent_cert/tenantid_mqttagent.pem",
-		"DEVICE_KET_PATH": "agent_cert/tenantid_mqttagent.key",
-		"MODEL_NAME": "JetPumpModel",
+		"CLIENT_ID": "asmten1_raspiakmachine",
+		"TENANT_ID": "asmten1",
+		"CA_PATH": "agent_cert/DigiCertGlobalRootG2.pem",
+		"DEVICE_CERT_PATH": "agent_cert/asmten1_raspiakmachine.pem",
+		"DEVICE_KET_PATH": "agent_cert/asmten1_raspiakmachine.key",
 		"GW_URL": "https://gateway.eu1.mindsphere.io",
 		"SGW_URL": "https://southgate.eu1.mindsphere.io",
-		"PLATFORM": "AWS"
+		"PLATFORM": "AWS",
+		"USE_CUSTOM_TIMESERIES" : "False",
+		"CUSTOM_TOPIC" : "clouddatastore/asmten1_raspiakmachine/ts"
+	},
+	"RANCHER_INT": {
+		"IOT_HOST": "mindconnectmqtt.pvt-rancher1.cn1-int.mindsphere-in.cn",
+		"CLIENT_ID": "devvpc02_demodevice",
+		"DEVICE_NAME": "demodevice",
+		"TENANT_ID": "devvpc02",
+		"CA_PATH": "agent_cert/rancher/GlobalSignRootCA.pem",
+		"TENANT_CERT_PATH": "agent_cert/rancher/devvpc02CA.pem",
+		"DEVICE_CERT_PATH": "agent_cert/rancher/devvpc02_demodevice.pem",
+		"DEVICE_KET_PATH": "agent_cert/rancher/devvpc02_demodevice.key",
+		"GW_URL": "https://gateway.pvt-rancher1.cn1-int.mindsphere-in.cn",
+		"SGW_URL": "https://southgate.pvt-rancher1.cn1-int.mindsphere-in.cn",
+		"PLATFORM": "PVTCLOUD"
 	}
 }
